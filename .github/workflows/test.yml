@@ -8,17 +8,9 @@ permissions:
   issues: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - run: |
-        npm install
-        npm run pack
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: ./
+    - uses: preetvadaliya/dep-doctor@v1.0.0
       with: 
         token: ${{ secrets.GITHUB_TOKEN }}
