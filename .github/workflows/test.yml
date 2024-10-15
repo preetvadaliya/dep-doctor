@@ -12,6 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: preetvadaliya/dep-doctor@v1.0.0
+    - uses: hiwelo/new-dependencies-action@1.0.1
       with: 
         token: ${{ secrets.GITHUB_TOKEN }}
