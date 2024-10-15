@@ -8,10 +8,15 @@ permissions:
   issues: write
 
 jobs:
-  test:
+  comment:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: hiwelo/new-dependencies-action@1.0.1
-      with: 
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 Thanks for reporting!'
+            })
