@@ -1,0 +1,43 @@
+{
+	"name": "dep-doctor",
+	"version": "1.0.0",
+	"private": true,
+	"description": "A GitHub Action that checks for newly added dependencies in a pull request.",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc",
+		"pack": "ncc build src/index.ts -o dist"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/preetvadaliya/dep-doctor.git"
+	},
+	"keywords": [
+		"dependency",
+		"doctor",
+		"check",
+		"action",
+		"pr",
+		"pull",
+		"request",
+		"new",
+		"added",
+		"dependencies"
+	],
+	"author": "Preet Vadaliya <preetvadaliya@gmail.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/preetvadaliya/dep-doctor/issues"
+	},
+	"homepage": "https://github.com/preetvadaliya/dep-doctor#readme",
+	"dependencies": {
+		"@actions/core": "^1.11.1",
+		"@actions/github": "^6.0.0",
+		"package-json": "^10.0.1"
+	},
+	"devDependencies": {
+		"@types/node": "^22.7.5",
+		"@vercel/ncc": "^0.38.2",
+		"typescript": "^5.6.3"
+	}
+}

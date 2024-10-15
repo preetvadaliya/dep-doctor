@@ -1,0 +1,13 @@
+name: Dependency Doctor
+description: A GitHub Action that checks for newly added dependencies in a pull request.
+author: Preet Vadaliya <preetvadaliya@gmail.com>
+branding:
+  icon: 'activity'
+  color: 'purple'
+inputs:
+  token:
+    description: Auth Token for the GitHub API
+    required: true
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
