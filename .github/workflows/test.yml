@@ -1,0 +1,19 @@
+name: "build-test"
+on: 
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        npm install
+        npm run pack
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./
+      with: 
+        token: ${{ secrets.GITHUB_TOKEN }}
