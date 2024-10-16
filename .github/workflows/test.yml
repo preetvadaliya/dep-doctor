@@ -12,6 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: preetvadaliya/dep-doctor@v1.0.0
+      - uses: preetvadaliya/dep-doctor@v1.1.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          template: |
+            ## Dependency Doctor Report
+            
+            ### New Dependencies
+            {$DEPS}
+
+            ### New Dev Dependencies
+            {$DEV_DEPS}
