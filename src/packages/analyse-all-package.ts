@@ -7,9 +7,9 @@ import { analysePackage } from "./analyse-package";
  *
  * @param files List of packages to analyze with the base branch.
  */
-export async function analyseAllPackages(
+export const analyseAllPackages = async (
   files: string[]
-): Promise<DependenciesList> {
+): Promise<DependenciesList> => {
   const dependencies: DependenciesList = {
     dependencies: [],
     devDependencies: [],
@@ -23,4 +23,4 @@ export async function analyseAllPackages(
   }
 
   return dependencies;
-}
+};

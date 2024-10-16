@@ -35909,7 +35909,6 @@ class GitHubClient {
 }
 exports.GitHubClient = GitHubClient;
 GitHubClient.hydratedInstance = undefined;
-exports["default"] = GitHubClient;
 
 
 /***/ }),
@@ -36018,66 +36017,73 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.draftMessage = draftMessage;
+exports.draftMessage = void 0;
 const core_1 = __nccwpck_require__(7484);
 const package_json_1 = __importDefault(__nccwpck_require__(7113));
 /**
- * Drafts the final message to be posted on the PR, listing new dependencies and their metadata.
+ * Drafts the final message to be posted on the PR, listing new dependencies
+ * and their metadata.
  *
  * @param newDependencies The list of new dependencies (both prod and dev).
  */
-function draftMessage(newDependencies) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const listDependencies = [
-            ...newDependencies.dependencies,
-            ...newDependencies.devDependencies,
-        ];
-        const info = {};
-        for (const dependency of listDependencies) {
-            try {
-                // @ts-ignore
-                info[dependency] = yield (0, package_json_1.default)(dependency, { fullMetadata: true });
-            }
-            catch (error) {
-                (0, core_1.debug)(`Package not found: ${dependency}`);
-            }
+const draftMessage = (newDependencies) => __awaiter(void 0, void 0, void 0, function* () {
+    const listDependencies = [
+        ...newDependencies.dependencies,
+        ...newDependencies.devDependencies,
+    ];
+    const info = {};
+    for (const dependency of listDependencies) {
+        try {
+            const packageInfo = yield (0, package_json_1.default)(dependency, { fullMetadata: true });
+            info[dependency] = {
+                name: packageInfo.name,
+                description: packageInfo.description,
+                version: packageInfo.version,
+                license: packageInfo.license,
+            };
         }
-        const dependenciesTable = `
-## Dependencies Added
-| **Dependency** | **License** | **Description** |
-| -------------- | ----------- | --------------- |
+        catch (error) {
+            (0, core_1.debug)(`Package not found: ${dependency}`);
+        }
+    }
+    const dependenciesTable = `
+| **Index** | **Context (Description)** | **Name** | **Version** | **License** |
+| --------- | -------------------------- | -------- | ----------- | ----------- |
 ${newDependencies.dependencies
-            .map((dep) => {
-            const metadata = info[dep];
-            return metadata
-                ? `| ${metadata.name} | ${metadata.license || "N/A"} | ${metadata.description || "N/A"} |`
-                : "";
-        })
-            .filter(Boolean)
-            .join("\n")}
+        .map((dep, index) => {
+        const metadata = info[dep];
+        return metadata
+            ? `| ${index + 1} | ${metadata.description || "N/A"} | ${metadata.name} | ${metadata.version || "N/A"} | ${metadata.license || "N/A"} |`
+            : "";
+    })
+        .filter(Boolean)
+        .join("\n")}
 `;
-        const devDependenciesTable = `
-## Development Dependencies Added
-| **Dependency** | **License** | **Description** |
-| -------------- | ----------- | --------------- |
+    const devDependenciesTable = `
+| **Index** | **Context (Description)** | **Name** | **Version** | **License** |
+| --------- | -------------------------- | -------- | ----------- | ----------- |
 ${newDependencies.devDependencies
-            .map((dep) => {
-            const metadata = info[dep];
-            return metadata
-                ? `| ${metadata.name} | ${metadata.license || "N/A"} | ${metadata.description || "N/A"} |`
-                : "";
-        })
-            .filter(Boolean)
-            .join("\n")}
+        .map((dep, index) => {
+        const metadata = info[dep];
+        return metadata
+            ? `| ${index + 1} | ${metadata.description || "N/A"} | ${metadata.name} | ${metadata.version || "N/A"} | ${metadata.license || "N/A"} |`
+            : "";
+    })
+        .filter(Boolean)
+        .join("\n")}
 `;
-        const sections = [
-            "<!-- new-dependencies-action -->",
-            newDependencies.dependencies.length ? dependenciesTable : "",
-            newDependencies.devDependencies.length ? devDependenciesTable : "",
-        ];
-        return sections.filter(Boolean).join("\n");
-    });
-}
+    const template = (0, core_1.getInput)("template");
+    if (newDependencies.dependencies.length >= 0 ? dependenciesTable : "") {
+        template.replace("{$DEPS}", dependenciesTable);
+    }
+    if (newDependencies.devDependencies.length >= 0 ? devDependenciesTable : "") {
+        template.replace("{$DEV_DEPS}", devDependenciesTable);
+    }
+    const sections = ["<!-- new-dependencies-action -->", template];
+    (0, core_1.setOutput)("report", template);
+    return sections.filter(Boolean).join("\n");
+});
+exports.draftMessage = draftMessage;
 
 
 /***/ }),
@@ -36123,26 +36129,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.manageMessage = manageMessage;
+exports.manageMessage = void 0;
 const helpers_1 = __nccwpck_require__(253);
 const draft_message_1 = __nccwpck_require__(6257);
-function manageMessage(newDependencies) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ghClient = helpers_1.GitHubClient.getClient();
-        const actionMessageId = yield ghClient.fetchMessage();
-        const hasNewDependencies = (newDependencies === null || newDependencies === void 0 ? void 0 : newDependencies.dependencies.length) ||
-            (newDependencies === null || newDependencies === void 0 ? void 0 : newDependencies.devDependencies.length);
-        if (!actionMessageId && !hasNewDependencies)
-            return; // Early exit if no new dependencies and no existing message
-        if (actionMessageId && !hasNewDependencies)
-            return ghClient.deleteMessage(); // Delete existing message if no new dependencies
-        if (!newDependencies) {
-            throw new Error("No new dependencies should have been solved by the previous conditions");
-        }
-        const message = yield (0, draft_message_1.draftMessage)(newDependencies);
-        yield ghClient.setMessage(message);
-    });
-}
+const manageMessage = (newDependencies) => __awaiter(void 0, void 0, void 0, function* () {
+    const ghClient = helpers_1.GitHubClient.getClient();
+    const actionMessageId = yield ghClient.fetchMessage();
+    const hasNewDependencies = (newDependencies === null || newDependencies === void 0 ? void 0 : newDependencies.dependencies.length) ||
+        (newDependencies === null || newDependencies === void 0 ? void 0 : newDependencies.devDependencies.length);
+    // Early exit if no new dependencies and no existing message
+    if (!actionMessageId && !hasNewDependencies)
+        return;
+    // Delete existing message if no new dependencies
+    if (actionMessageId && !hasNewDependencies) {
+        return ghClient.deleteMessage();
+    }
+    if (!newDependencies) {
+        throw new Error("No new dependencies should have been solved by the previous conditions");
+    }
+    const message = yield (0, draft_message_1.draftMessage)(newDependencies);
+    yield ghClient.setMessage(message);
+});
+exports.manageMessage = manageMessage;
 
 
 /***/ }),
@@ -36162,7 +36170,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.analyseAllPackages = analyseAllPackages;
+exports.analyseAllPackages = void 0;
 const analyse_package_1 = __nccwpck_require__(9937);
 /**
  * Returns the list of all new dependencies not existing in the base branch
@@ -36170,20 +36178,19 @@ const analyse_package_1 = __nccwpck_require__(9937);
  *
  * @param files List of packages to analyze with the base branch.
  */
-function analyseAllPackages(files) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const dependencies = {
-            dependencies: [],
-            devDependencies: [],
-        };
-        for (const file of files) {
-            const result = yield (0, analyse_package_1.analysePackage)(file);
-            dependencies.dependencies.push(...result.dependencies);
-            dependencies.devDependencies.push(...result.devDependencies);
-        }
-        return dependencies;
-    });
-}
+const analyseAllPackages = (files) => __awaiter(void 0, void 0, void 0, function* () {
+    const dependencies = {
+        dependencies: [],
+        devDependencies: [],
+    };
+    for (const file of files) {
+        const result = yield (0, analyse_package_1.analysePackage)(file);
+        dependencies.dependencies.push(...result.dependencies);
+        dependencies.devDependencies.push(...result.devDependencies);
+    }
+    return dependencies;
+});
+exports.analyseAllPackages = analyseAllPackages;
 
 
 /***/ }),
@@ -36203,31 +36210,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.analysePackage = analysePackage;
+exports.analysePackage = void 0;
 const helpers_1 = __nccwpck_require__(253);
 const local_package_info_1 = __nccwpck_require__(4904);
-function analysePackage(file) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ghClient = helpers_1.GitHubClient.getClient();
-        const baseBranch = yield ghClient.getBaseBranch();
-        const basePackage = yield ghClient.getPackage(file, baseBranch);
-        const baseDependencies = basePackage
-            ? Object.keys(basePackage.dependencies)
-            : [];
-        const baseDevDependencies = basePackage
-            ? Object.keys(basePackage.devDependencies)
-            : [];
-        const updatedPackage = yield (0, local_package_info_1.getLocalPackageInfo)(file);
-        const updatedDependencies = Object.keys(updatedPackage.dependencies);
-        const updatedDevDependencies = Object.keys(updatedPackage.devDependencies);
-        const newDependencies = updatedDependencies.filter((dep) => !baseDependencies.includes(dep));
-        const newDevDependencies = updatedDevDependencies.filter((dep) => !baseDevDependencies.includes(dep));
-        return {
-            dependencies: newDependencies,
-            devDependencies: newDevDependencies,
-        };
-    });
-}
+const analysePackage = (file) => __awaiter(void 0, void 0, void 0, function* () {
+    const ghClient = helpers_1.GitHubClient.getClient();
+    const baseBranch = yield ghClient.getBaseBranch();
+    const basePackage = yield ghClient.getPackage(file, baseBranch);
+    const baseDependencies = basePackage
+        ? Object.keys(basePackage.dependencies)
+        : [];
+    const baseDevDependencies = basePackage
+        ? Object.keys(basePackage.devDependencies)
+        : [];
+    const updatedPackage = yield (0, local_package_info_1.getLocalPackageInfo)(file);
+    const updatedDependencies = Object.keys(updatedPackage.dependencies);
+    const updatedDevDependencies = Object.keys(updatedPackage.devDependencies);
+    const newDependencies = updatedDependencies.filter((dep) => !baseDependencies.includes(dep));
+    const newDevDependencies = updatedDevDependencies.filter((dep) => !baseDevDependencies.includes(dep));
+    return {
+        dependencies: newDependencies,
+        devDependencies: newDevDependencies,
+    };
+});
+exports.analysePackage = analysePackage;
 
 
 /***/ }),
@@ -36247,22 +36253,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPackageFiles = getPackageFiles;
+exports.getPackageFiles = void 0;
 const helpers_1 = __nccwpck_require__(253);
 /**
  * Lists all updated package files in the current pull request
  *
  * @param context Context to use for the GitHub API call
  */
-function getPackageFiles() {
-    return __awaiter(this, void 0, void 0, function* () {
-        // lists all updated files in the current pull request
-        const ghClient = helpers_1.GitHubClient.getClient();
-        const files = yield ghClient.listFiles();
-        // returns the filtered list of package files
-        return files.filter((file) => file.includes("package.json"));
-    });
-}
+const getPackageFiles = () => __awaiter(void 0, void 0, void 0, function* () {
+    // lists all updated files in the current pull request
+    const ghClient = helpers_1.GitHubClient.getClient();
+    const files = yield ghClient.listFiles();
+    // returns the filtered list of package files
+    return files.filter((file) => file.includes("package.json"));
+});
+exports.getPackageFiles = getPackageFiles;
 
 
 /***/ }),
@@ -36310,7 +36315,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLocalPackageInfo = getLocalPackageInfo;
+exports.getLocalPackageInfo = void 0;
 const node_fs_1 = __nccwpck_require__(3024);
 const node_util_1 = __nccwpck_require__(7975);
 const readFileAsync = (0, node_util_1.promisify)(node_fs_1.readFile);
@@ -36319,24 +36324,23 @@ const readFileAsync = (0, node_util_1.promisify)(node_fs_1.readFile);
  *
  * @param file Path to the requested local `package.json` file.
  */
-function getLocalPackageInfo() {
-    return __awaiter(this, arguments, void 0, function* (file = "package.json") {
-        try {
-            const fileContent = yield readFileAsync(file, { encoding: "utf8" });
-            const content = JSON.parse(fileContent);
-            return {
-                dependencies: (content === null || content === void 0 ? void 0 : content.dependencies) || {},
-                devDependencies: (content === null || content === void 0 ? void 0 : content.devDependencies) || {},
-            };
-        }
-        catch (error) {
-            return {
-                dependencies: {},
-                devDependencies: {},
-            };
-        }
-    });
-}
+const getLocalPackageInfo = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (file = "package.json") {
+    try {
+        const fileContent = yield readFileAsync(file, { encoding: "utf8" });
+        const content = JSON.parse(fileContent);
+        return {
+            dependencies: (content === null || content === void 0 ? void 0 : content.dependencies) || {},
+            devDependencies: (content === null || content === void 0 ? void 0 : content.devDependencies) || {},
+        };
+    }
+    catch (error) {
+        return {
+            dependencies: {},
+            devDependencies: {},
+        };
+    }
+});
+exports.getLocalPackageInfo = getLocalPackageInfo;
 
 
 /***/ }),

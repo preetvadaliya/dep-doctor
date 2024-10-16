@@ -5,11 +5,11 @@ import { GitHubClient } from "@src/helpers";
  *
  * @param context Context to use for the GitHub API call
  */
-export async function getPackageFiles(): Promise<string[]> {
+export const getPackageFiles = async (): Promise<string[]> => {
   // lists all updated files in the current pull request
   const ghClient = GitHubClient.getClient();
   const files = await ghClient.listFiles();
 
   // returns the filtered list of package files
   return files.filter((file) => file.includes("package.json"));
-}
+};

@@ -2,7 +2,7 @@ import { GitHubClient } from "@src/helpers";
 import type { DependenciesList } from "@src/types";
 import { getLocalPackageInfo } from "./local-package-info";
 
-export async function analysePackage(file: string): Promise<DependenciesList> {
+export const analysePackage = async (file: string): Promise<DependenciesList> => {
   const ghClient = GitHubClient.getClient();
 
   const baseBranch = await ghClient.getBaseBranch();
@@ -29,4 +29,4 @@ export async function analysePackage(file: string): Promise<DependenciesList> {
     dependencies: newDependencies,
     devDependencies: newDevDependencies,
   };
-}
+};

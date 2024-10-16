@@ -143,5 +143,3 @@ export class GitHubClient {
     return GitHubClient.hydratedInstance;
   }
 }
-
-export default GitHubClient;

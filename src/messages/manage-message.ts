@@ -2,18 +2,22 @@ import { GitHubClient } from "@src/helpers";
 import type { DependenciesList } from "@src/types";
 import { draftMessage } from "./draft-message";
 
-export async function manageMessage(
+export const manageMessage = async (
   newDependencies?: DependenciesList
-): Promise<void> {
+): Promise<void> => {
   const ghClient = GitHubClient.getClient();
   const actionMessageId = await ghClient.fetchMessage();
   const hasNewDependencies =
     newDependencies?.dependencies.length ||
     newDependencies?.devDependencies.length;
 
-  if (!actionMessageId && !hasNewDependencies) return; // Early exit if no new dependencies and no existing message
+  // Early exit if no new dependencies and no existing message
+  if (!actionMessageId && !hasNewDependencies) return;
 
-  if (actionMessageId && !hasNewDependencies) return ghClient.deleteMessage(); // Delete existing message if no new dependencies
+  // Delete existing message if no new dependencies
+  if (actionMessageId && !hasNewDependencies) {
+    return ghClient.deleteMessage();
+  }
 
   if (!newDependencies) {
     throw new Error(
@@ -23,4 +27,4 @@ export async function manageMessage(
 
   const message = await draftMessage(newDependencies);
   await ghClient.setMessage(message);
-}
+};
