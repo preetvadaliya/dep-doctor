@@ -63,12 +63,12 @@ ${newDependencies.devDependencies
   .join("\n")}
 `;
 
-  const template = getInput("template");
+  let template = getInput("template");
   if (newDependencies.dependencies.length >= 0 ? dependenciesTable : "") {
-    template.replace("{$DEPS}", dependenciesTable);
+    template = template.replace("{$DEPS}", dependenciesTable);
   }
   if (newDependencies.devDependencies.length >= 0 ? devDependenciesTable : "") {
-    template.replace("{$DEV_DEPS}", devDependenciesTable);
+    template = template.replace("{$DEV_DEPS}", devDependenciesTable);
   }
   const sections = ["<!-- new-dependencies-action -->", template];
   setOutput("report", template);

@@ -36072,12 +36072,12 @@ ${newDependencies.devDependencies
         .filter(Boolean)
         .join("\n")}
 `;
-    const template = (0, core_1.getInput)("template");
+    let template = (0, core_1.getInput)("template");
     if (newDependencies.dependencies.length >= 0 ? dependenciesTable : "") {
-        template.replace("{$DEPS}", dependenciesTable);
+        template = template.replace("{$DEPS}", dependenciesTable);
     }
     if (newDependencies.devDependencies.length >= 0 ? devDependenciesTable : "") {
-        template.replace("{$DEV_DEPS}", devDependenciesTable);
+        template = template.replace("{$DEV_DEPS}", devDependenciesTable);
     }
     const sections = ["<!-- new-dependencies-action -->", template];
     (0, core_1.setOutput)("report", template);
