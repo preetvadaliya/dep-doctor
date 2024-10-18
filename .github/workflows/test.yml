@@ -2,18 +2,24 @@ name: "build-test"
 on: 
   - pull_request
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
-  build:
+  comment:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - run: |
-        npm install
-        npm run pack
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: ./
-      with: 
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: preetvadaliya/dep-doctor@v1.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          template: |
+            ## Dependency Doctor Report
+            
+            ### New Dependencies
+            {$DEPS}
+
+            ### New Dev Dependencies
+            {$DEV_DEPS}
